@@ -17,6 +17,7 @@
  */
 package org.apache.cassandra.auth;
 
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
@@ -26,7 +27,9 @@ import org.junit.Test;
 
 import org.apache.cassandra.db.ConsistencyLevel;
 import org.apache.cassandra.exceptions.UnavailableException;
+import org.assertj.core.api.Assertions;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -198,6 +201,29 @@ public class AuthCacheTest
         TestCache<String, Integer> cache = new TestCache<>(s -> { throw UnavailableException.create(ConsistencyLevel.QUORUM, 3, 1); }, this::setValidity, () -> validity, () -> isCacheEnabled);
 
         cache.get("expect-exception");
+    }
+
+    @Test
+    public void testCacheLoaderIsNotCalledOnGetAllWhenCacheIsEmpty()
+    {
+        TestCache<String, Integer> authCache = new TestCache<>(this::countingLoader, this::setValidity, () -> validity, () -> isCacheEnabled);
+
+        Map<String, Integer> result = authCache.getAll();
+
+        assertThat(result).isEmpty();
+        assertEquals(0, loadCounter);
+    }
+
+    @Test
+    public void testCacheLoaderIsNotCalledOnGetAllWhenCacheIsNotEmpty()
+    {
+        TestCache<String, Integer> authCache = new TestCache<>(this::countingLoader, this::setValidity, () -> validity, () -> isCacheEnabled);
+        authCache.get("10");
+        Map<String, Integer> result = authCache.getAll();
+
+        assertThat(result).hasSize(1);
+        assertThat(result).containsEntry("10", 10);
+        assertEquals(1, loadCounter);
     }
 
     private void setValidity(int validity)

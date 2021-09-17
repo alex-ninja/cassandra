@@ -69,12 +69,16 @@ public class PasswordAuthenticator implements IAuthenticator
     static final byte NUL = 0;
     private SelectStatement authenticateStatement;
 
-    private CredentialsCache cache;
+    private static CredentialsCache cache;
 
     // No anonymous access.
     public boolean requireAuthentication()
     {
         return true;
+    }
+
+    public static CredentialsCache getCredentialsCache() {
+        return cache;
     }
 
     protected static boolean checkpw(String password, String hash)
@@ -100,7 +104,8 @@ public class PasswordAuthenticator implements IAuthenticator
         return new AuthenticatedUser(username);
     }
 
-    private String queryHashedPassword(String username)
+    @VisibleForTesting
+    String queryHashedPassword(String username)
     {
         try
         {
@@ -245,7 +250,7 @@ public class PasswordAuthenticator implements IAuthenticator
         }
     }
 
-    private static class CredentialsCache extends AuthCache<String, String> implements CredentialsCacheMBean
+    public static class CredentialsCache extends AuthCache<String, String> implements CredentialsCacheMBean
     {
         private CredentialsCache(PasswordAuthenticator authenticator)
         {

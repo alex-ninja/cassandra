@@ -20,6 +20,7 @@ package org.apache.cassandra.auth;
 
 import java.util.concurrent.Callable;
 
+import org.apache.cassandra.auth.jmx.AuthorizationProxy;
 import org.apache.cassandra.cql3.QueryOptions;
 import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.cql3.UntypedResultSet;
@@ -107,9 +108,42 @@ public class AuthTestUtils
 
     public static class LocalPasswordAuthenticator extends PasswordAuthenticator
     {
+        private final boolean requireAuthentication;
+
+        public LocalPasswordAuthenticator()
+        {
+            this.requireAuthentication = true;
+        }
+
+        public LocalPasswordAuthenticator(boolean requireAuthentication)
+        {
+            this.requireAuthentication = requireAuthentication;
+        }
+
         ResultMessage.Rows select(SelectStatement statement, QueryOptions options)
         {
             return statement.executeLocally(QueryState.forInternalCalls(), options);
+        }
+
+        @Override
+        public boolean requireAuthentication()
+        {
+            return requireAuthentication;
+        }
+
+        @Override
+        public String queryHashedPassword(String username)
+        {
+            return super.queryHashedPassword(username);
+        }
+    }
+
+    public static class NoAuthSetupAuthorizationProxy extends AuthorizationProxy
+    {
+        public NoAuthSetupAuthorizationProxy()
+        {
+            super();
+            this.isAuthSetupComplete = () -> true;
         }
     }
 
@@ -139,6 +173,7 @@ public class AuthTestUtils
         return rolesTable.metric.readLatency.latency.getCount();
     }
 
+    // TODO: rename me
     public static RoleOptions getLoginRoleOprions()
     {
         RoleOptions roleOptions = new RoleOptions();

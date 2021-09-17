@@ -18,6 +18,8 @@
 
 package org.apache.cassandra.auth;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -110,6 +112,14 @@ public class AuthCache<K, V> implements AuthCacheMBean
     }
 
     /**
+     * Retrive all cached entries. Will call {@link LoadingCache#asMap()} which does not trigger "load".
+     * @return a map of cached key-value pairs
+     */
+    public Map<K, V> getAll()
+    {
+        return Collections.unmodifiableMap(cache.asMap());
+    }
+    /**
      * Retrieve a value from the cache. Will call {@link LoadingCache#get(Object)} which will
      * "load" the value if it's not present, thus populating the key.
      * @param k
@@ -134,7 +144,7 @@ public class AuthCache<K, V> implements AuthCacheMBean
     }
 
     /**
-     * Invalidate a key
+     * Invalidate a key.
      * @param k key to invalidate
      */
     public void invalidate(K k)

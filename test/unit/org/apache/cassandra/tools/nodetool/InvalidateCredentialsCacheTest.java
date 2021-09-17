@@ -49,20 +49,20 @@ public class InvalidateCredentialsCacheTest extends CQLTester
     {
         SchemaLoader.prepareServer();
         AuthTestUtils.LocalCassandraRoleManager roleManager = new AuthTestUtils.LocalCassandraRoleManager();
-        PasswordAuthenticator authenticator = new AuthTestUtils.LocalPasswordAuthenticator();
+        PasswordAuthenticator passwordAuthenticator = new AuthTestUtils.LocalPasswordAuthenticator();
         SchemaLoader.setupAuth(roleManager,
-                authenticator,
+                passwordAuthenticator,
                 new AuthTestUtils.LocalCassandraAuthorizer(),
                 new AuthTestUtils.LocalCassandraNetworkAuthorizer());
 
         roleManager.createRole(AuthenticatedUser.SYSTEM_USER, ROLE_A, AuthTestUtils.getLoginRoleOprions());
         roleManager.createRole(AuthenticatedUser.SYSTEM_USER, ROLE_B, AuthTestUtils.getLoginRoleOprions());
 
-        roleANegotiator = authenticator.newSaslNegotiator(null);
+        roleANegotiator = passwordAuthenticator.newSaslNegotiator(null);
         roleANegotiator.evaluateResponse(new PlainTextAuthProvider(ROLE_A.getRoleName(), "ignored")
                 .newAuthenticator((EndPoint) null, null)
                 .initialResponse());
-        roleBNegotiator = authenticator.newSaslNegotiator(null);
+        roleBNegotiator = passwordAuthenticator.newSaslNegotiator(null);
         roleBNegotiator.evaluateResponse(new PlainTextAuthProvider(ROLE_B.getRoleName(), "ignored")
                 .newAuthenticator((EndPoint) null, null)
                 .initialResponse());

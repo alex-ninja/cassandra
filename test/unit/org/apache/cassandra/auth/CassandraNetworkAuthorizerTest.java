@@ -46,6 +46,7 @@ import static org.apache.cassandra.auth.AuthKeyspace.NETWORK_PERMISSIONS;
 import static org.apache.cassandra.auth.AuthTestUtils.LocalCassandraAuthorizer;
 import static org.apache.cassandra.auth.AuthTestUtils.LocalCassandraNetworkAuthorizer;
 import static org.apache.cassandra.auth.AuthTestUtils.LocalCassandraRoleManager;
+import static org.apache.cassandra.auth.AuthTestUtils.LocalPasswordAuthenticator;
 import static org.apache.cassandra.auth.AuthTestUtils.getRolesReadCount;
 import static org.apache.cassandra.schema.SchemaConstants.AUTH_KEYSPACE_NAME;
 
@@ -66,12 +67,10 @@ public class CassandraNetworkAuthorizerTest
     {
         SchemaLoader.prepareServer();
         SchemaLoader.setupAuth(new LocalCassandraRoleManager(),
-                               new PasswordAuthenticator(),
+                               new LocalPasswordAuthenticator(),
                                new LocalCassandraAuthorizer(),
                                new LocalCassandraNetworkAuthorizer());
         setupSuperUser();
-        // not strictly necessary to init the cache here, but better to be explicit
-        Roles.initRolesCache(DatabaseDescriptor.getRoleManager(), () -> true);
     }
 
     @Before
@@ -124,7 +123,7 @@ public class CassandraNetworkAuthorizerTest
         AuthenticationStatement authStmt = (AuthenticationStatement) statement;
 
         // invalidate roles cache so that any changes to the underlying roles are picked up
-        Roles.clearCache();
+        Roles.cache.invalidate();
         authStmt.execute(getClientState());
     }
 
@@ -195,7 +194,7 @@ public class CassandraNetworkAuthorizerTest
         assertDcPermRow(username, "dc1");
 
         // clear the roles cache to lose the (non-)superuser status for the user
-        Roles.clearCache();
+        Roles.cache.invalidate();
         auth("ALTER ROLE %s WITH superuser = true", username);
         Assert.assertEquals(DCPermissions.all(), dcPerms(username));
     }

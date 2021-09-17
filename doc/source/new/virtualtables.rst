@@ -187,7 +187,7 @@ The virtual tables may be described with ``DESCRIBE`` statement. The DDL listed 
 
 Caches Virtual Table
 ********************
-The ``caches`` virtual table lists information about the  caches. The four caches presently created are chunks, counters, keys and rows. A query on the ``caches`` virtual table returns the following details:
+The ``caches`` virtual table lists information about the caches. The four caches presently created are chunks, counters, keys and rows. A query on the ``caches`` virtual table returns the following details:
 
 ::
 
@@ -307,6 +307,8 @@ As another example, to find how much time is remaining for SSTable tasks, use th
 
   SELECT total - progress AS remaining
   FROM system_views.sstable_tasks;
+
+TODO: add details on the new tables!
 
 Other Virtual Tables
 ********************

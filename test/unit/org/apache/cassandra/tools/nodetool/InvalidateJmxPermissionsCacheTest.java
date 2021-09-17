@@ -44,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(OrderedJUnit4ClassRunner.class)
 public class InvalidateJmxPermissionsCacheTest extends CQLTester
 {
-    private static final AuthorizationProxy authorizationProxy = new NoAuthSetupAuthorizationProxy();
+    private static final AuthorizationProxy authorizationProxy = new AuthTestUtils.NoAuthSetupAuthorizationProxy();
 
     @BeforeClass
     public static void setup() throws Exception
@@ -181,12 +181,4 @@ public class InvalidateJmxPermissionsCacheTest extends CQLTester
         return subject;
     }
 
-    private static class NoAuthSetupAuthorizationProxy extends AuthorizationProxy
-    {
-        public NoAuthSetupAuthorizationProxy()
-        {
-            super();
-            this.isAuthSetupComplete = () -> true;
-        }
-    }
 }

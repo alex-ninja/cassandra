@@ -25,11 +25,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.apache.cassandra.SchemaLoader;
-import org.apache.cassandra.schema.KeyspaceParams;
-import org.apache.cassandra.schema.SchemaConstants;
-import org.apache.cassandra.schema.TableMetadata;
 
-import static org.apache.cassandra.auth.AuthTestUtils.*;
+import static org.apache.cassandra.auth.AuthTestUtils.ALL_ROLES;
+import static org.apache.cassandra.auth.AuthTestUtils.LocalCassandraAuthorizer;
+import static org.apache.cassandra.auth.AuthTestUtils.LocalCassandraNetworkAuthorizer;
+import static org.apache.cassandra.auth.AuthTestUtils.LocalCassandraRoleManager;
+import static org.apache.cassandra.auth.AuthTestUtils.LocalPasswordAuthenticator;
+import static org.apache.cassandra.auth.AuthTestUtils.ROLE_A;
+import static org.apache.cassandra.auth.AuthTestUtils.ROLE_B;
+import static org.apache.cassandra.auth.AuthTestUtils.ROLE_C;
+import static org.apache.cassandra.auth.AuthTestUtils.getRolesReadCount;
+import static org.apache.cassandra.auth.AuthTestUtils.grantRolesTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -40,14 +46,12 @@ public class RolesTest
     public static void setupClass()
     {
         SchemaLoader.prepareServer();
-        // create the system_auth keyspace so the IRoleManager can function as normal
-        SchemaLoader.createKeyspace(SchemaConstants.AUTH_KEYSPACE_NAME,
-                                    KeyspaceParams.simple(1),
-                                    Iterables.toArray(AuthKeyspace.metadata().tables, TableMetadata.class));
+        LocalCassandraRoleManager roleManager = new LocalCassandraRoleManager();
+        SchemaLoader.setupAuth(roleManager,
+                new LocalPasswordAuthenticator(),
+                new LocalCassandraAuthorizer(),
+                new LocalCassandraNetworkAuthorizer());
 
-        IRoleManager roleManager = new LocalCassandraRoleManager();
-        roleManager.setup();
-        Roles.initRolesCache(roleManager, () -> true);
         for (RoleResource role : ALL_ROLES)
             roleManager.createRole(AuthenticatedUser.ANONYMOUS_USER, role, new RoleOptions());
         grantRolesTo(roleManager, ROLE_A, ROLE_B, ROLE_C);
